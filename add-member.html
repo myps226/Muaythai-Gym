@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add New Member - Muay Thai Gym</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>🥊 Add New Member</h1>
+            <a href="index.html" class="back-link">← Back to Members</a>
+        </header>
+
+        <div id="error" class="error" style="display: none;"></div>
+        <div id="success" class="success" style="display: none;"></div>
+
+        <form id="addMemberForm" class="member-form">
+            <div class="form-section">
+                <h2>Personal Information</h2>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="firstName">First Name *</label>
+                        <input type="text" id="firstName" name="firstName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="lastName">Last Name *</label>
+                        <input type="text" id="lastName" name="lastName" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="email">Email *</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Phone</label>
+                        <input type="tel" id="phone" name="phone">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h2>Membership Details</h2>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="membershipType">Membership Type *</label>
+                        <select id="membershipType" name="membershipType" required>
+                            <option value="">Select Type</option>
+                            <option value="Monthly">Monthly</option>
+                            <option value="Quarterly">Quarterly (3 Months)</option>
+                            <option value="6 Months">6 Months</option>
+                            <option value="Annual">Annual</option>
+                            <option value="Drop-in">Drop-in</option>
+                            <option value="Trial">Trial</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="membershipStatus">Status *</label>
+                        <select id="membershipStatus" name="membershipStatus" required>
+                            <option value="active">Active</option>
+                            <option value="expired">Expired</option>
+                            <option value="suspended">Suspended</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="joinDate">Join Date *</label>
+                        <input type="date" id="joinDate" name="joinDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="expiryDate">Expiry Date</label>
+                        <input type="date" id="expiryDate" name="expiryDate">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h2>Emergency Contact</h2>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="emergencyContactName">Contact Name</label>
+                        <input type="text" id="emergencyContactName" name="emergencyContactName">
+                    </div>
+                    <div class="form-group">
+                        <label for="emergencyContactPhone">Contact Phone</label>
+                        <input type="tel" id="emergencyContactPhone" name="emergencyContactPhone">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <div class="form-group">
+                    <label for="notes">Notes</label>
+                    <textarea id="notes" name="notes" rows="4"
+                        placeholder="Any additional notes or comments..."></textarea>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary"
+                    onclick="window.location.href='index.html'">Cancel</button>
+                <button type="submit" class="btn btn-primary">Add Member</button>
+            </div>
+        </form>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script>
+        // Set today's date as default
+        document.getElementById('joinDate').valueAsDate = new Date();
+
+        // Handle form submission
+        document.getElementById('addMemberForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const errorDiv = document.getElementById('error');
+            const successDiv = document.getElementById('success');
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+
+            // Hide previous messages
+            errorDiv.style.display = 'none';
+            successDiv.style.display = 'none';
+
+            // Disable submit button
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Adding Member...';
+
+            try {
+                const formData = {
+                    first_name: document.getElementById('firstName').value.trim(),
+                    last_name: document.getElementById('lastName').value.trim(),
+                    email: document.getElementById('email').value.trim().toLowerCase(),
+                    phone: document.getElementById('phone').value.trim() || null,
+                    membership_type: document.getElementById('membershipType').value,
+                    membership_status: document.getElementById('membershipStatus').value,
+                    join_date: document.getElementById('joinDate').value,
+                    expiry_date: document.getElementById('expiryDate').value || null,
+                    emergency_contact_name: document.getElementById('emergencyContactName').value.trim() || null,
+                    emergency_contact_phone: document.getElementById('emergencyContactPhone').value.trim() || null,
+                    notes: document.getElementById('notes').value.trim() || null
+                };
+
+                const { data, error } = await supabase
+                    .from('members')
+                    .insert([formData])
+                    .select();
+
+                if (error) throw error;
+
+                // Show success message
+                successDiv.textContent = 'Member added successfully! Redirecting...';
+                successDiv.style.display = 'block';
+
+                // Redirect after 1.5 seconds
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1500);
+
+            } catch (error) {
+                console.error('Error adding member:', error);
+                errorDiv.textContent = `Error: ${error.message}`;
+                errorDiv.style.display = 'block';
+
+                // Re-enable submit button
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Add Member';
+            }
+        });
+
+        // Auto-calculate expiry date based on membership type
+        document.getElementById('membershipType').addEventListener('change', (e) => {
+            const joinDate = document.getElementById('joinDate').value;
+            const expiryDateInput = document.getElementById('expiryDate');
+
+            if (!joinDate) return;
+
+            const join = new Date(joinDate);
+            let expiry = new Date(join);
+
+            switch (e.target.value) {
+                case 'Monthly':
+                    expiry.setMonth(expiry.getMonth() + 1);
+                    break;
+                case 'Quarterly':
+                    expiry.setMonth(expiry.getMonth() + 3);
+                    break;
+                case '6 Months':
+                    expiry.setMonth(expiry.getMonth() + 6);
+                    break;
+                case 'Annual':
+                    expiry.setFullYear(expiry.getFullYear() + 1);
+                    break;
+                default:
+                    expiryDateInput.value = '';
+                    return;
+            }
+
+            expiryDateInput.value = expiry.toISOString().split('T')[0];
+        });
+    </script>
+</body>
+
+</html>

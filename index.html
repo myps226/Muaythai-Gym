@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Muay Thai Gym - Member Management</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>🥊 Muay Thai Gym</h1>
+            <p class="subtitle">Member Management System</p>
+        </header>
+
+        <div class="actions">
+            <a href="add-member.html" class="btn btn-primary">+ Add New Member</a>
+            <div class="search-filter">
+                <input type="text" id="searchInput" placeholder="Search members..." class="search-box">
+                <select id="statusFilter" class="filter-select">
+                    <option value="">All Statuses</option>
+                    <option value="active">Active</option>
+                    <option value="expired">Expired</option>
+                    <option value="suspended">Suspended</option>
+                    <option value="cancelled">Cancelled</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="loading" class="loading">Loading members...</div>
+        <div id="error" class="error" style="display: none;"></div>
+
+        <div id="stats" class="stats-container" style="display: none;">
+            <div class="stat-card">
+                <div class="stat-value" id="totalMembers">0</div>
+                <div class="stat-label">Total Members</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="activeMembers">0</div>
+                <div class="stat-label">Active</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="expiredMembers">0</div>
+                <div class="stat-label">Expired</div>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table id="membersTable">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Membership Type</th>
+                        <th>Status</th>
+                        <th>Join Date</th>
+                        <th>Expiry Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="membersTableBody">
+                    <!-- Members will be loaded here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>
