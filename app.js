@@ -16,29 +16,18 @@ const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let editingMemberId = null; // Track which member we're editing (null = adding new)
 
 // ============================================
-// DOM ELEMENTS
+// DOM ELEMENTS (will be initialized in DOMContentLoaded)
 // ============================================
-const memberForm = document.getElementById('member-form');
-const membersTableBody = document.getElementById('members-tbody');
-const messageDiv = document.getElementById('message');
-const loadingDiv = document.getElementById('loading');
-const formTitle = document.getElementById('form-title');
-const submitBtn = document.getElementById('submit-btn');
-const cancelBtn = document.getElementById('cancel-btn');
+let memberForm;
+let membersTableBody;
+let messageDiv;
+let loadingDiv;
+let formTitle;
+let submitBtn;
+let cancelBtn;
 
 // Form input fields
-const formFields = {
-    full_name: document.getElementById('full_name'),
-    age: document.getElementById('age'),
-    gender: document.getElementById('gender'),
-    phone_number: document.getElementById('phone_number'),
-    email: document.getElementById('email'),
-    membership_type: document.getElementById('membership_type'),
-    membership_start_date: document.getElementById('membership_start_date'),
-    membership_end_date: document.getElementById('membership_end_date'),
-    training_level: document.getElementById('training_level'),
-    status: document.getElementById('status')
-};
+let formFields;
 
 // ============================================
 // UTILITY FUNCTIONS
@@ -50,13 +39,20 @@ const formFields = {
  * @param {string} type - 'success' or 'error'
  */
 function showMessage(text, type = 'success') {
+    if (!messageDiv) {
+        console.error('Message div not initialized:', text);
+        alert(text); // Fallback to alert if DOM not ready
+        return;
+    }
     messageDiv.textContent = text;
     messageDiv.className = `message ${type}`;
     messageDiv.style.display = 'block';
 
     // Auto-hide after 5 seconds
     setTimeout(() => {
-        messageDiv.style.display = 'none';
+        if (messageDiv) {
+            messageDiv.style.display = 'none';
+        }
     }, 5000);
 }
 
@@ -96,11 +92,11 @@ function escapeHtml(text) {
  * Reset form to empty state
  */
 function resetForm() {
-    memberForm.reset();
+    if (memberForm) memberForm.reset();
     editingMemberId = null;
-    formTitle.textContent = 'Add New Member';
-    submitBtn.textContent = 'Add Member';
-    cancelBtn.style.display = 'none';
+    if (formTitle) formTitle.textContent = 'Add New Member';
+    if (submitBtn) submitBtn.textContent = 'Add Member';
+    if (cancelBtn) cancelBtn.style.display = 'none';
 }
 
 /**
@@ -108,25 +104,33 @@ function resetForm() {
  * @param {Object} member - Member object from database
  */
 function populateForm(member) {
-    formFields.full_name.value = member.full_name || '';
-    formFields.age.value = member.age || '';
-    formFields.gender.value = member.gender || '';
-    formFields.phone_number.value = member.phone_number || '';
-    formFields.email.value = member.email || '';
-    formFields.membership_type.value = member.membership_type || '';
-    formFields.membership_start_date.value = member.membership_start_date || '';
-    formFields.membership_end_date.value = member.membership_end_date || '';
-    formFields.training_level.value = member.training_level || '';
-    formFields.status.value = member.status || 'Active';
+    if (!formFields) {
+        console.error('Form fields not initialized!');
+        return;
+    }
+
+    if (formFields.full_name) formFields.full_name.value = member.full_name || '';
+    if (formFields.age) formFields.age.value = member.age || '';
+    if (formFields.gender) formFields.gender.value = member.gender || '';
+    if (formFields.phone_number) formFields.phone_number.value = member.phone_number || '';
+    if (formFields.email) formFields.email.value = member.email || '';
+    if (formFields.membership_type) formFields.membership_type.value = member.membership_type || '';
+    if (formFields.membership_start_date) formFields.membership_start_date.value = member.membership_start_date || '';
+    if (formFields.membership_end_date) formFields.membership_end_date.value = member.membership_end_date || '';
+    if (formFields.training_level) formFields.training_level.value = member.training_level || '';
+    if (formFields.status) formFields.status.value = member.status || 'Active';
 
     // Update UI for edit mode
     editingMemberId = member.id;
-    formTitle.textContent = 'Edit Member';
-    submitBtn.textContent = 'Update Member';
-    cancelBtn.style.display = 'inline-block';
+    if (formTitle) formTitle.textContent = 'Edit Member';
+    if (submitBtn) submitBtn.textContent = 'Update Member';
+    if (cancelBtn) cancelBtn.style.display = 'inline-block';
 
     // Scroll to form
-    document.querySelector('.form-section').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    const formSection = document.querySelector('.form-section');
+    if (formSection) {
+        formSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
 }
 
 // ============================================
@@ -139,6 +143,8 @@ function populateForm(member) {
  */
 async function createMember(memberData) {
     try {
+        console.log('Attempting to create member with data:', memberData);
+        
         // Use Supabase .insert() method to add a new row
         // .insert() accepts an array of objects (even though we're only adding one)
         const { data, error } = await supabase
@@ -147,9 +153,11 @@ async function createMember(memberData) {
             .select();  // Return the inserted data
 
         if (error) {
+            console.error('Supabase insert error:', error);
             throw error;
         }
 
+        console.log('Member created successfully:', data);
         showMessage('Member added successfully!', 'success');
         resetForm();
         await fetchMembers(); // Refresh the table
@@ -157,7 +165,8 @@ async function createMember(memberData) {
 
     } catch (error) {
         console.error('Error creating member:', error);
-        showMessage(`Error adding member: ${error.message}`, 'error');
+        const errorMessage = error.message || 'Unknown error occurred';
+        showMessage(`Error adding member: ${errorMessage}`, 'error');
         throw error;
     }
 }
@@ -171,8 +180,10 @@ async function createMember(memberData) {
  */
 async function fetchMembers() {
     try {
-        loadingDiv.style.display = 'block';
+        if (loadingDiv) loadingDiv.style.display = 'block';
 
+        console.log('Fetching members from Supabase...');
+        
         // Use Supabase .select() to get all rows
         // .order() sorts by created_at in descending order (newest first)
         const { data, error } = await supabase
@@ -181,23 +192,28 @@ async function fetchMembers() {
             .order('created_at', { ascending: false });  // Order by creation date
 
         if (error) {
+            console.error('Supabase fetch error:', error);
             throw error;
         }
 
+        console.log('Fetched members:', data?.length || 0, 'members');
         displayMembers(data || []);
-        loadingDiv.style.display = 'none';
+        if (loadingDiv) loadingDiv.style.display = 'none';
 
     } catch (error) {
         console.error('Error fetching members:', error);
         showMessage(`Error loading members: ${error.message}`, 'error');
-        loadingDiv.style.display = 'none';
-        membersTableBody.innerHTML = `
-            <tr>
-                <td colspan="11" class="empty-state">
-                    <p>Error loading members. Please check your Supabase connection.</p>
-                </td>
-            </tr>
-        `;
+        if (loadingDiv) loadingDiv.style.display = 'none';
+        if (membersTableBody) {
+            membersTableBody.innerHTML = `
+                <tr>
+                    <td colspan="11" class="empty-state">
+                        <p>Error loading members. Please check your Supabase connection.</p>
+                        <p style="font-size: 12px; margin-top: 10px;">Error: ${error.message}</p>
+                    </td>
+                </tr>
+            `;
+        }
     }
 }
 
@@ -206,6 +222,13 @@ async function fetchMembers() {
  * @param {Array} members - Array of member objects
  */
 function displayMembers(members) {
+    if (!membersTableBody) {
+        console.error('Members table body not initialized!');
+        return;
+    }
+
+    console.log('Displaying', members.length, 'members');
+
     if (members.length === 0) {
         membersTableBody.innerHTML = `
             <tr>
@@ -325,44 +348,74 @@ async function deleteMember(id, name) {
 /**
  * Handle form submission (both Add and Update)
  */
-memberForm.addEventListener('submit', async (e) => {
-    e.preventDefault(); // Prevent page refresh
-
-    // Gather form data
-    const memberData = {
-        full_name: formFields.full_name.value.trim(),
-        age: formFields.age.value ? parseInt(formFields.age.value) : null,
-        gender: formFields.gender.value || null,
-        phone_number: formFields.phone_number.value.trim() || null,
-        email: formFields.email.value.trim(),
-        membership_type: formFields.membership_type.value || null,
-        membership_start_date: formFields.membership_start_date.value || null,
-        membership_end_date: formFields.membership_end_date.value || null,
-        training_level: formFields.training_level.value || null,
-        status: formFields.status.value || 'Active'
-    };
-
-    try {
-        if (editingMemberId) {
-            // UPDATE: If we're editing, update the existing member
-            await updateMember(editingMemberId, memberData);
-        } else {
-            // CREATE: If we're not editing, create a new member
-            await createMember(memberData);
-        }
-    } catch (error) {
-        // Error is already handled in createMember/updateMember
-        console.error('Form submission error:', error);
+function setupFormHandler() {
+    if (!memberForm) {
+        console.error('Form element not found!');
+        return;
     }
-});
+
+    memberForm.addEventListener('submit', async (e) => {
+        e.preventDefault(); // Prevent page refresh
+
+        console.log('Form submitted, gathering data...');
+
+        // Helper function to safely get and trim value
+        const getValue = (field) => {
+            if (!field || !field.value) return null;
+            const trimmed = field.value.trim();
+            return trimmed === '' ? null : trimmed;
+        };
+
+        // Gather form data
+        const memberData = {
+            full_name: getValue(formFields.full_name),
+            age: formFields.age.value ? parseInt(formFields.age.value) : null,
+            gender: getValue(formFields.gender),
+            phone_number: getValue(formFields.phone_number),
+            email: getValue(formFields.email),
+            membership_type: getValue(formFields.membership_type),
+            membership_start_date: getValue(formFields.membership_start_date),
+            membership_end_date: getValue(formFields.membership_end_date),
+            training_level: getValue(formFields.training_level),
+            status: formFields.status.value || 'Active'
+        };
+
+        console.log('Member data to insert:', memberData);
+
+        // Validate required fields
+        if (!memberData.full_name || !memberData.email) {
+            showMessage('Please fill in required fields (Full Name and Email)', 'error');
+            return;
+        }
+
+        try {
+            if (editingMemberId) {
+                // UPDATE: If we're editing, update the existing member
+                console.log('Updating member:', editingMemberId);
+                await updateMember(editingMemberId, memberData);
+            } else {
+                // CREATE: If we're not editing, create a new member
+                console.log('Creating new member...');
+                await createMember(memberData);
+            }
+        } catch (error) {
+            // Error is already handled in createMember/updateMember
+            console.error('Form submission error:', error);
+        }
+    });
+}
 
 /**
  * Handle cancel button click (exit edit mode)
  */
-cancelBtn.addEventListener('click', () => {
-    resetForm();
-    showMessage('Edit cancelled.', 'success');
-});
+function setupCancelHandler() {
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', () => {
+            resetForm();
+            showMessage('Edit cancelled.', 'success');
+        });
+    }
+}
 
 /**
  * Handle edit button click
@@ -406,10 +459,52 @@ function handleDelete(id, name) {
 
 // Load members when page loads
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM loaded, initializing app...');
+    
+    // Initialize DOM elements
+    memberForm = document.getElementById('member-form');
+    membersTableBody = document.getElementById('members-tbody');
+    messageDiv = document.getElementById('message');
+    loadingDiv = document.getElementById('loading');
+    formTitle = document.getElementById('form-title');
+    submitBtn = document.getElementById('submit-btn');
+    cancelBtn = document.getElementById('cancel-btn');
+
+    // Initialize form fields
+    formFields = {
+        full_name: document.getElementById('full_name'),
+        age: document.getElementById('age'),
+        gender: document.getElementById('gender'),
+        phone_number: document.getElementById('phone_number'),
+        email: document.getElementById('email'),
+        membership_type: document.getElementById('membership_type'),
+        membership_start_date: document.getElementById('membership_start_date'),
+        membership_end_date: document.getElementById('membership_end_date'),
+        training_level: document.getElementById('training_level'),
+        status: document.getElementById('status')
+    };
+
+    // Verify all critical elements exist
+    if (!memberForm || !membersTableBody || !messageDiv) {
+        console.error('Critical DOM elements not found!', {
+            memberForm: !!memberForm,
+            membersTableBody: !!membersTableBody,
+            messageDiv: !!messageDiv
+        });
+        return;
+    }
+
+    console.log('DOM elements initialized successfully');
+
+    // Setup event handlers
+    setupFormHandler();
+    setupCancelHandler();
+
     // Check if Supabase credentials are configured
     if (SUPABASE_URL === 'YOUR_SUPABASE_PROJECT_URL' || SUPABASE_ANON_KEY === 'YOUR_SUPABASE_ANON_KEY') {
         showMessage('⚠️ Please configure your Supabase credentials in app.js before using the app.', 'error');
     } else {
+        console.log('Supabase credentials configured, fetching members...');
         fetchMembers();
     }
 });
