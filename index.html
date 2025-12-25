@@ -1,77 +1,136 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Muay Thai Gym - Member Management</title>
     <link rel="stylesheet" href="styles.css">
 </head>
-
 <body>
     <div class="container">
+        <!-- Header -->
         <header>
             <h1>🥊 Muay Thai Gym</h1>
             <p class="subtitle">Member Management System</p>
         </header>
 
-        <div class="actions">
-            <a href="add-member.html" class="btn btn-primary">+ Add New Member</a>
-            <div class="search-filter">
-                <input type="text" id="searchInput" placeholder="Search members..." class="search-box">
-                <select id="statusFilter" class="filter-select">
-                    <option value="">All Statuses</option>
-                    <option value="active">Active</option>
-                    <option value="expired">Expired</option>
-                    <option value="suspended">Suspended</option>
-                    <option value="cancelled">Cancelled</option>
-                </select>
-            </div>
-        </div>
+        <!-- Success/Error Messages -->
+        <div id="message" class="message" style="display: none;"></div>
 
-        <div id="loading" class="loading">Loading members...</div>
-        <div id="error" class="error" style="display: none;"></div>
+        <!-- Add Member Form Section -->
+        <section class="form-section">
+            <h2 id="form-title">Add New Member</h2>
+            <form id="member-form">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="full_name">Full Name *</label>
+                        <input type="text" id="full_name" name="full_name" required>
+                    </div>
 
-        <div id="stats" class="stats-container" style="display: none;">
-            <div class="stat-card">
-                <div class="stat-value" id="totalMembers">0</div>
-                <div class="stat-label">Total Members</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="activeMembers">0</div>
-                <div class="stat-label">Active</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="expiredMembers">0</div>
-                <div class="stat-label">Expired</div>
-            </div>
-        </div>
+                    <div class="form-group">
+                        <label for="age">Age</label>
+                        <input type="number" id="age" name="age" min="1" max="120">
+                    </div>
 
-        <div class="table-container">
-            <table id="membersTable">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Phone</th>
-                        <th>Membership Type</th>
-                        <th>Status</th>
-                        <th>Join Date</th>
-                        <th>Expiry Date</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="membersTableBody">
-                    <!-- Members will be loaded here -->
-                </tbody>
-            </table>
-        </div>
+                    <div class="form-group">
+                        <label for="gender">Gender</label>
+                        <select id="gender" name="gender">
+                            <option value="">Select Gender</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phone_number">Phone Number</label>
+                        <input type="tel" id="phone_number" name="phone_number">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email *</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="membership_type">Membership Type</label>
+                        <select id="membership_type" name="membership_type">
+                            <option value="">Select Type</option>
+                            <option value="Monthly">Monthly</option>
+                            <option value="Annual">Annual</option>
+                            <option value="Drop-in">Drop-in</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="membership_start_date">Membership Start Date</label>
+                        <input type="date" id="membership_start_date" name="membership_start_date">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="membership_end_date">Membership End Date</label>
+                        <input type="date" id="membership_end_date" name="membership_end_date">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="training_level">Training Level</label>
+                        <select id="training_level" name="training_level">
+                            <option value="">Select Level</option>
+                            <option value="Beginner">Beginner</option>
+                            <option value="Intermediate">Intermediate</option>
+                            <option value="Advanced">Advanced</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="status">Status</label>
+                        <select id="status" name="status">
+                            <option value="Active">Active</option>
+                            <option value="Inactive">Inactive</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary" id="submit-btn">Add Member</button>
+                    <button type="button" class="btn btn-secondary" id="cancel-btn" style="display: none;">Cancel</button>
+                </div>
+            </form>
+        </section>
+
+        <!-- Members Table Section -->
+        <section class="table-section">
+            <div class="section-header">
+                <h2>All Members</h2>
+                <div id="loading" class="loading" style="display: none;">Loading members...</div>
+            </div>
+
+            <div class="table-container">
+                <table id="members-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Age</th>
+                            <th>Gender</th>
+                            <th>Phone</th>
+                            <th>Email</th>
+                            <th>Membership Type</th>
+                            <th>Training Level</th>
+                            <th>Status</th>
+                            <th>Start Date</th>
+                            <th>End Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="members-tbody">
+                        <!-- Members will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
     </div>
 
     <!-- Supabase JS Client -->
-    <script src="https://unpkg.com/@supabase/supabase-js@2.39.3/dist/umd/supabase.js"></script>
-    <script src="config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="app.js"></script>
 </body>
-
 </html>

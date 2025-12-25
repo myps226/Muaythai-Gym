@@ -136,7 +136,7 @@
         async function loadMemberData() {
             try {
                 const { data, error } = await supabase
-                    .from('members')
+                    .from('member')
                     .select('*')
                     .eq('id', memberId)
                     .single();
@@ -203,7 +203,7 @@
                 };
 
                 const { data, error } = await supabase
-                    .from('members')
+                    .from('member')
                     .update(formData)
                     .eq('id', memberId)
                     .select();
