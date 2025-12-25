@@ -8,7 +8,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 // Initialize Supabase client
 // This creates a client that we'll use to interact with our database
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ============================================
 // GLOBAL STATE
@@ -147,7 +147,7 @@ async function createMember(memberData) {
         
         // Use Supabase .insert() method to add a new row
         // .insert() accepts an array of objects (even though we're only adding one)
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
             .from('member')  // Table name in Supabase
             .insert([memberData])  // Insert data as array
             .select();  // Return the inserted data
@@ -186,7 +186,7 @@ async function fetchMembers() {
         
         // Use Supabase .select() to get all rows
         // .order() sorts by created_at in descending order (newest first)
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
             .from('member')  // Table name
             .select('*')  // Select all columns
             .order('created_at', { ascending: false });  // Order by creation date
@@ -283,7 +283,7 @@ async function updateMember(id, memberData) {
         // Use Supabase .update() to modify existing row
         // .eq() filters by ID (id = memberId)
         // .select() returns the updated data
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
             .from('member')  // Table name
             .update(memberData)  // Update with new data
             .eq('id', id)  // Where id equals the member's id
@@ -323,7 +323,7 @@ async function deleteMember(id, name) {
     try {
         // Use Supabase .delete() to remove a row
         // .eq() filters by ID
-        const { error } = await supabase
+        const { error } = await supabaseClient
             .from('member')  // Table name
             .delete()  // Delete operation
             .eq('id', id);  // Where id equals the member's id
@@ -424,7 +424,7 @@ function setupCancelHandler() {
 async function handleEdit(id) {
     try {
         // First, fetch the member data
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
             .from('member')
             .select('*')
             .eq('id', id)
