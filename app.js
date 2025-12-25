@@ -6,9 +6,10 @@
 const SUPABASE_URL = 'https://mgwbvuwqhqjpoabuafbx.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1nd2J2dXdxaHFqcG9hYnVhZmJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2Mjg0MjgsImV4cCI6MjA4MjIwNDQyOH0.XSyFzYvnmiHyN4Vl7nflw4LSr-rTjABXbVl-WNsh5K4';
 
-// Initialize Supabase client
+// Initialize Supabase client (will be initialized in DOMContentLoaded)
 // This creates a client that we'll use to interact with our database
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Note: window.supabase is the global namespace from the CDN library
+let supabaseClient;
 
 // ============================================
 // GLOBAL STATE
@@ -356,6 +357,8 @@ function setupFormHandler() {
 
     memberForm.addEventListener('submit', async (e) => {
         e.preventDefault(); // Prevent page refresh
+        e.stopPropagation(); // Stop event bubbling
+        e.stopImmediatePropagation(); // Stop other handlers
 
         console.log('Form submitted, gathering data...');
 
@@ -461,6 +464,19 @@ function handleDelete(id, name) {
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM loaded, initializing app...');
     
+    // Wait for Supabase to be available
+    if (typeof window.supabase === 'undefined') {
+        console.error('Supabase library not loaded yet!');
+        showMessage('Error: Supabase library not loaded. Please refresh the page.', 'error');
+        return;
+    }
+    
+    // Initialize Supabase client (if not already initialized)
+    if (!supabaseClient) {
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        console.log('Supabase client initialized');
+    }
+
     // Initialize DOM elements
     memberForm = document.getElementById('member-form');
     membersTableBody = document.getElementById('members-tbody');
